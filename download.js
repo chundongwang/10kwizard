@@ -13,8 +13,8 @@ var ftp = new Ftp({
 var year_start = 2010;
 var year_count = 3;
 var path_root = 'cache';
-var target_file = 'company.zip'
-var targets = [];
+var target_file = 'company.zip';
+var download_funcs = [];
 var cached_count = 0;
 
 console.log('start caching...');
@@ -30,7 +30,7 @@ for (var i = 0 ; i < year_count ; i++) { // Year
     // generating target
     var remote_path = "/edgar/full-index/"+(year_start+i)+"/QTR"+(j+1)+"/"+target_file;
 
-    targets.push(function (local,remote){
+    download_funcs.push(function (local,remote){
       return function() {
         console.log('Downloading '+remote+' to '+local+'...');
         ftp.get(remote, function(err, data) {
@@ -55,9 +55,7 @@ for (var i = 0 ; i < year_count ; i++) { // Year
 
   }
 }
-for (var i = 0 ; i < targets.length; i++) {
-  targets[i]();
-}
+for (var i = 0 ; i < download_funcs.length; i++) { download_funcs[i](); }
 
 console.log('All executed!');
 
