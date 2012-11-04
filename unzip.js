@@ -15,9 +15,9 @@ do {
   var curr_fs = fs.statSync(curr_path);
   if (curr_fs.isDirectory()) {
     var subfiles = fs.readdirSync(curr_path);
-    for (var i = 0 ; i < subfiles.length ; i++) {
-      files.push(path.resolve(curr_path,subfiles[i]));
-    }
+    subfiles.forEach(function(subfile){
+      files.push(path.resolve(curr_path,subfile));
+    });
   } else if (curr_fs.isFile() && path.basename(curr_path) == target_file) {
 
     unzip_funcs.push(function (zip_file_path, unzip_target) {
@@ -29,6 +29,6 @@ do {
   }
 } while (files.length>0);
 
-for (var i = 0 ; i < unzip_funcs.length; i++) { unzip_funcs[i](); }
+unzip_funcs.forEach(function(func){func();});
 
 console.log('All executed!');

@@ -17,7 +17,7 @@ var target_file = 'company.zip';
 var download_funcs = [];
 var cached_count = 0;
 
-console.log('start caching...');
+console.log('start downloading index files...');
 
 for (var i = 0 ; i < year_count ; i++) { // Year
   var path_year = path.resolve(path_root, ''+(year_start+i));
@@ -55,7 +55,7 @@ for (var i = 0 ; i < year_count ; i++) { // Year
 
   }
 }
-for (var i = 0 ; i < download_funcs.length; i++) { download_funcs[i](); }
+
+download_funcs.forEach(function(func){func();});
 
 console.log('All executed!');
-

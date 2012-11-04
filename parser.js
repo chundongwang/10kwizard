@@ -22,9 +22,9 @@ if (fs.existsSync(db_file)) {
     var curr_fs = fs.statSync(curr_path);
     if (curr_fs.isDirectory()) {
       var subfiles = fs.readdirSync(curr_path);
-      for (var i = 0 ; i < subfiles.length ; i++) {
-        files.push(path.resolve(curr_path,subfiles[i]));
-      }
+      subfiles.forEach(function(subfile){
+        files.push(path.resolve(curr_path,subfile));
+      });
     } else if (curr_fs.isFile() && path.basename(curr_path) == target_file) {
       parse_funcs.push(function(to_parse) {
         return function () {
@@ -49,11 +49,11 @@ if (fs.existsSync(db_file)) {
                     line.substring(74,86),
                     line.substring(86,98),
                     line.substring(98,149)];
-                  for (var i = 0; i < fields.length ; i++) {
-                    while (fields[i].slice(-1)==' ') { // trim end
-                      fields[i] = fields[i].substring(0,fields[i].length-1);
+                  fields.forEach(function(field,i){
+                    while (field.slice(-1)==' ') { // trim end
+                      fields[i] = field.substring(0,field.length-1);
                     }
-                  }
+                  });
                   if (/10-[QK]/i.test(fields[1])) {
                     db.push(fields[4]);
                   }
@@ -63,9 +63,9 @@ if (fs.existsSync(db_file)) {
             .on('end', function() {
               console.log('parsing: '+to_parse+' is done!');
               var out = fs.createWriteStream(db_file,{encoding:'utf8',flags:'a+'});
-              for (var i = 0 ; i < db.length ; i++) {
-                out.write(db[i]+'\r\n');
-              }
+              db.forEach(function(e){
+                out.write(e+'\r\n');
+              });
               out.end();
               out.destroySoon();
               console.log('dumping: '+to_parse+' is done!');
@@ -81,7 +81,7 @@ if (fs.existsSync(db_file)) {
   } while (files.length>0);
 
   target_count += parse_funcs.length;
-  for (var i = 0 ; i < parse_funcs.length; i++) { parse_funcs[i](); }
+  parse_funcs.forEach(function(func){func();});
 
   console.log('All executed!');
 }
