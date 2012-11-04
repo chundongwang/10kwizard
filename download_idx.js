@@ -10,8 +10,8 @@ var ftp = new Ftp({
     pass: "a@b.c"
 });
 
-var year_start = 2010;
-var year_count = 3;
+var year_start = 1993;
+var year_count = 1;
 var path_root = 'cache';
 var target_file = 'company.zip';
 var download_funcs = [];
@@ -56,6 +56,6 @@ for (var i = 0 ; i < year_count ; i++) { // Year
   }
 }
 
-download_funcs.forEach(function(func){func();});
+download_funcs.forEach(function(func){try{func();}catch(err){console.error(err);}});
 
 console.log('All executed!');
