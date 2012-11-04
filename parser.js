@@ -2,6 +2,7 @@ var fs = require('fs');
 var path = require('path');
 var reader = require('buffered-reader');
 var util = require('util');
+var os = require('os');
 
 var target_file = "company.idx";
 var db_file = 'db.txt';
@@ -64,14 +65,16 @@ if (fs.existsSync(db_file)) {
               console.log('parsing: '+to_parse+' is done!');
               var out = fs.createWriteStream(db_file,{encoding:'utf8',flags:'a+'});
               db.forEach(function(e){
-                out.write(e+'\r\n');
+                out.write(e+os.EOL);
               });
               out.end();
               out.destroySoon();
               console.log('dumping: '+to_parse+' is done!');
               target_count--;
               if (target_count==0) {
-                console.log('--------------------\r\nDone!\r\n--------------------\r\n');
+                console.log('--------------------');
+                console.log('Done!');
+                console.log('--------------------');
               }
             })
             .read();
