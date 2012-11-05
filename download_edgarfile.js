@@ -32,7 +32,7 @@ function getSingleFile(remote_path) {
         //console.log('content length:'+data.length);
         fs.writeFile(path.resolve(local_cache_root,path.basename(remote_path)),data,'utf8',function(err){
           if (err) console.error(err);
-          console.log(remote_path+' cached!');
+          console.log(remote_path+' cached, content length: %d!', data.length);
         });
         if (task_queue.length>0) {
           getSingleFile(task_queue.pop());
@@ -53,7 +53,7 @@ function getSingleFile(remote_path) {
 if (fs.existsSync(db_file)) {
   console.log('preparing task queue...');
   fs.readFile(db_file, 'utf8', function(err,data){
-    var task_queue = data.split(os.EOL);
+    task_queue = data.split(os.EOL);
     console.log('Retrieved '+task_queue.length+' tasks!');
     for (var i = 0 ; i < max_parallel_count ; i++) {
       getSingleFile(task_queue.pop());
