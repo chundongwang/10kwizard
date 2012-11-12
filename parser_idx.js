@@ -10,9 +10,11 @@ var path_root = 'cache';
 var files = []; //relative to path_root, like '2011/QTR3/company.idx'
 var parse_funcs = [];
 
+var DEBUG_OPTION = false;
+
 if (fs.existsSync(db_file)) {
   console.log('found existing database file: '+path.resolve(db_file));
-  console.log('please rename it and retry parser.js.');
+  console.log('please rename it and retry '+__filename);
 } else {
   console.log('start parsing...');
 
@@ -32,6 +34,7 @@ if (fs.existsSync(db_file)) {
           var sep_content = /^[-]+$/;
           var content_found = false;
           var db = [];
+          var line_progress = 0;
           new reader.DataReader(to_parse, {encoding:'utf8'})
             .on('error', function(err) {
               console.error(err);
@@ -43,22 +46,25 @@ if (fs.existsSync(db_file)) {
                 }
               } else {
                 if (/10-[QK]/i.test(line)) {
-                  //console.log(line);
+                  DEBUG_OPTION&&console.log(line);
                   var fields = [
-                    line.substring(0,62),
-                    line.substring(62,74),
-                    line.substring(74,86),
-                    line.substring(86,98),
-                    line.substring(98,149)];
-                  fields.forEach(function(field,i){
-                    while (field.slice(-1)==' ') { // trim end
-                      fields[i] = field.substring(0,field.length-1);
-                    }
-                  });
+                    line.substring(0,62).replace(/\s+$/,''),
+                    line.substring(62,74).replace(/\s+$/,''),
+                    line.substring(74,86).replace(/\s+$/,''),
+                    line.substring(86,98).replace(/\s+$/,''),
+                    line.substring(98,149).replace(/\s+$/,'')];
+                  DEBUG_OPTION&&console.dir(fields);
                   if (/10-[QK]/i.test(fields[1])) {
                     db.push(fields[4]);
+                    /*
+                    // the path seperator is for ftp usage, don't use path.sep which is for local filesystem.
+                    db.push(path.dirname(fields[4])+'/'+path.basename(fields[4],'.txt')+'.hdr.sgml');
+                    */
                   }
                 }
+              }
+              if (++line_progress%1000==0) {
+                console.log(line_progress+' lines processed...');
               }
             })
             .on('end', function() {
