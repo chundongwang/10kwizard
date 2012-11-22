@@ -9,7 +9,8 @@ var db_host = 'localhost',
   db_name = 'edgar';
 
 var cache_root='cache\\10kq';
-var target_files=fs.readdirSync(path.resolve(cache_root));
+var target_root='cache\\10kq-unpacked';
+var source_files=fs.readdirSync(path.resolve(cache_root));
 var fields_regex={
                    "ACCESSION NUMBER":/ACCESSION NUMBER:\s+([^\r\n]+)(?:.|\r|\n)*/,
                    "CONFORMED SUBMISSION TYPE":/CONFORMED SUBMISSION TYPE:\s+([^\r\n]+)(?:.|\r|\n)*/,
@@ -31,17 +32,23 @@ var fields_regex={
 var filename_regex=/<FILENAME>([^\r\n]*)/;
 var content_regex=/<TEXT>((?:.|\r|\n)*)<\/TEXT>/;
 
-target_files.forEach(function(file_name){
+console.log("Connecting to " + db_host + ":" + db_port);
+
+var doc_10kqs=[];
+var count=0;
+source_files.forEach(function(file_name){
   // TODO: we should check file count to make sure
   var file_path=path.join(cache_root,file_name);
   if(path.extname(file_name)=='.txt'){
-    var target_path=path.join(cache_root,path.basename(file_name,'.txt'));
+    count++;
+    var target_path=path.join(target_root,path.basename(file_name,'.txt'));
     if(!fs.existsSync(target_path)){
       fs.readFile(file_path,'utf8',function(err, data){
         if(err)console.error(err);
         //console.log(file_path+' is read into memory! target: '+target_path);
         var doc_10kq={};
         var sections=data.split(/(?:<DOCUMENT>|<\/DOCUMENT>)/);
+        doc_10kq['FILENAMES']=[];
         sections.forEach(function(section,i){
           if(i==0){
             // parse header
@@ -61,6 +68,7 @@ target_files.forEach(function(file_name){
             }
             var filename=section.match(filename_regex)[1];
             var content=section.match(content_regex)[1];
+            doc_10kq['FILENAMES'].push(filename);
             fs.writeFile(path.resolve(target_path,filename),content,'utf8',function(err){
               console.log('%s done!',filename);
             });
@@ -68,8 +76,27 @@ target_files.forEach(function(file_name){
           }
         });
         doc_10kq['TARGET PATH']=target_path;
+        doc_10kqs.push(doc_10kq);
         //console.dir(doc_10kq);
         console.log('Parsing '+file_path+' is Done! Target: '+target_path);
+        count--;
+        if(count<=0){
+          var doc_10kqs_db=doc_10kqs;
+          doc_10kqs=[];
+
+          console.log("Connecting to " + db_host + ":" + db_port);
+          var db = new Db(db_name, new Server(db_host, db_port, {}), {native_parser:true});
+          db.open(function(err,db){
+            if(err) console.error(err);
+            db.collection('10kq', function(err, collection) {
+              if(err) console.error(err);
+              collection.insert(doc_10kqs_db);
+              db.close();
+              console.log("Connection of " + db_host + " closed.");
+            });
+          });
+
+        };
       });
     } else {
       console.log(target_path+' exists! Will skip it.');
